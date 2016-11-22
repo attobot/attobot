@@ -15,14 +15,14 @@ logger.setLevel(logging.INFO)
 
 GITHUB_API="https://api.github.com/"
 
-BOT_USER="attobot"
-BOT_PASS=os.environ['BOT_PASS']
+BOT_USER = "attobot"
+BOT_PASS = os.environ['BOT_PASS']
 
 META_NAME = "METADATA.jl"
-META_ORG = "JuliaLang"
+META_ORG  = "JuliaLang"
 META_BRANCH = "metadata-v2"
 
-SECRET=os.environ["SECRET"]
+SECRET = os.environ["SECRET"]
 
 # seems like the best option is to base64 encode the body?
 # https://github.com/pristineio/lambda-webhook
@@ -48,7 +48,7 @@ def lambda_handler(event, context):
     body = json.loads(body_str)
     if body["action"] != "published":
         return 'Not a "published" event'
-    
+
     release = body["release"]
     repository = body["repository"]
 
@@ -177,4 +177,3 @@ def lambda_handler(event, context):
                 "head": BOT_USER + ":" + NEW_BRANCH_NAME,
                 "base": META_BRANCH
             })
-
