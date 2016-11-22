@@ -57,7 +57,7 @@ def lambda_handler(event, context):
     HTML_URL = release["html_url"]
 
     REPO_NAME = repository["name"]
-    REPO_FULLNAME = body["repository"]["full_name"]
+    REPO_FULLNAME = repository["full_name"]
     REPO_URLS = [repository["git_url"], repository["ssh_url"], repository["clone_url"]]
 
     if REPO_NAME.endswith(".jl"):
@@ -79,6 +79,7 @@ def lambda_handler(event, context):
         REPO_URL_META = base64.b64decode(rj["content"]).rstrip()
     elif rj["encoding"] == "utf-8":
         REPO_URL_META = rj["content"].rstrip()
+
     if REPO_URL_META not in REPO_URLS:
         raise Exception('Repository path does not match that in METADATA')
 
