@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-GITHUB_API="https://api.github.com/"
+GITHUB_API = "https://api.github.com/"
 
 BOT_USER = "attobot"
 BOT_PASS = os.environ['BOT_PASS']
@@ -178,3 +178,6 @@ def lambda_handler(event, context):
                 "head": BOT_USER + ":" + NEW_BRANCH_NAME,
                 "base": META_BRANCH
             })
+    rj = r.json()
+
+    return "PR created: " + rj["url"]
