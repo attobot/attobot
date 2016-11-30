@@ -59,6 +59,7 @@ def lambda_handler(event, context):
     REPO_NAME = repository["name"]
     REPO_FULLNAME = repository["full_name"]
     REPO_URLS = [repository["git_url"], repository["ssh_url"], repository["clone_url"]]
+    REPO_HTML_URL = repository["html_url"]
 
     if REPO_NAME.endswith(".jl"):
         PKG_NAME = REPO_NAME[:-3]
@@ -83,30 +84,46 @@ def lambda_handler(event, context):
     if REPO_URL_META not in REPO_URLS:
         raise Exception('Repository path does not match that in METADATA')
 
-    # 2) get the commit hash corresponding to the tag
+    # 2) get last version
+    r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions"),
+                     params={"ref": META_BRANCH})
+    rj = r.json()
+    LAST_VERSION = max([d["name"] for d in rj], key=lambda s: map(int, s.split('.')))
+
+    # 3) get last version sha1
+    r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "sha1"),
+                     params={"ref": META_BRANCH})
+    rj = r.json()
+    if rj["encoding"] == "base64":
+        LAST_VERSION_SHA1 = base64.b64decode(rj["content"]).rstrip()
+    elif rj["encoding"] == "utf-8":
+        LAST_VERSION_SHA1 = rj["content"].rstrip()
+
+
+    # 4) get the commit hash corresponding to the tag
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "git/refs/tags", TAG_NAME))
     rj = r.json()
     SHA1 = rj["object"]["sha"]
 
-    # 3) get the REQUIRE file from the commit
+    # 5) get the REQUIRE file from the commit
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "contents", "REQUIRE"),
                      params={"ref": SHA1})
     rj = r.json()
     REQUIRE_CONTENT = rj["content"]
     REQUIRE_ENCODING = rj["encoding"]
 
-    # 4) get current METADATA head commit
+    # 6) get current METADATA head commit
     r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "git/refs/heads", META_BRANCH))
     rj = r.json()
     LAST_COMMIT_SHA = rj["object"]["sha"]
     LAST_COMMIT_URL = rj["object"]["url"]
 
-    # 5) get tree corresponding to last METADATA commit
+    # 7) get tree corresponding to last METADATA commit
     r = requests.get(LAST_COMMIT_URL)
     rj = r.json()
     LAST_TREE_SHA = rj["tree"]["sha"]
 
-    # 6) create blob for REQUIRE
+    # 8) create blob for REQUIRE
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
             auth=(BOT_USER, BOT_PASS),
             json={
@@ -116,7 +133,7 @@ def lambda_handler(event, context):
     rj = r.json()
     REQUIRE_BLOB_SHA = rj["sha"]
 
-    # 7) create blob for SHA1
+    # 9) create blob for SHA1
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
             auth=(BOT_USER, BOT_PASS),
             json={
@@ -126,7 +143,7 @@ def lambda_handler(event, context):
     rj = r.json()
     SHA1_BLOB_SHA = rj["sha"]
 
-    # 8) create new tree
+    # 10) create new tree
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/trees"),
             auth=(BOT_USER, BOT_PASS),
             json={
@@ -149,7 +166,7 @@ def lambda_handler(event, context):
     rj = r.json()
     NEW_TREE_SHA = rj["sha"]
 
-    # 9) create commit
+    # 11) create commit
     r = requests.post(urljoin(GITHUB_API,"repos", BOT_USER, META_NAME, "git/commits"),
             auth=(BOT_USER, BOT_PASS),
             json={
@@ -160,7 +177,7 @@ def lambda_handler(event, context):
     rj = r.json()
     NEW_COMMIT_SHA = rj["sha"]
 
-    # 10) Create new ref (i.e. branch)
+    # 12) Create new ref (i.e. branch)
     NEW_BRANCH_NAME = "pr/" + SHA1
     r = requests.post(urljoin(GITHUB_API,"repos", BOT_USER, META_NAME, "git/refs"),
             auth=(BOT_USER, BOT_PASS),
@@ -169,12 +186,14 @@ def lambda_handler(event, context):
                 "sha": NEW_COMMIT_SHA
             })
 
-    # 11) Create pull request
+    # 13) Create pull request
+    DIFF_URL = urljoin(REPO_HTML_URL, "compare", LAST_VERSION_SHA1 + "..." + SHA1)
     r = requests.post(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
             auth=(BOT_USER, BOT_PASS),
             json={
                 "title": "Tag " + REPO_NAME + " " + TAG_NAME,
-                "body": HTML_URL + "\n cc: @" + AUTHOR,
+                "body": "Release: " + HTML_URL + "\nDiff: [vs v" + LAST_VERSION +
+                "](" + DIFF_URL + ")\ncc: @" + AUTHOR,
                 "head": BOT_USER + ":" + NEW_BRANCH_NAME,
                 "base": META_BRANCH
             })
