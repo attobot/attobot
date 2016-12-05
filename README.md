@@ -8,6 +8,7 @@ AttoBot is a package release bot for Julia. It will creates pull requests to Jul
 
 To set up AttoBot on your repository, go to https://github.com/integration/attobot and click "Configure" to select the repositories you wish to add. These should be Julia repositories which are already [registered in METADATA.jl](http://docs.julialang.org/en/release-0.5/manual/packages/#tagging-and-publishing-your-package).
 
+### Creating a release
 Releases are created via [GitHub releases](https://help.github.com/articles/creating-releases/): this is some extra functionality built on top of git tags that trigger a webhook used by AttoBot.
 
  1. Click on the "releases" link in the repository banner.
@@ -18,7 +19,8 @@ Releases are created via [GitHub releases](https://help.github.com/articles/crea
  
 AttoBot will then open a pull request against METADATA and CC you in the process. If the pull request does not appear within 30 seconds or so, please [open an issue](https://github.com/attobot/attobot/issues/new).
 
-If you need to modify the release before the METADATA pull request has been merged, the easiest option is to delete the release and create a new version:
+### Deleting a release
+If you need to modify the commit used for the release *before* the METADATA pull request has been merged, the easiest option is to delete the release and create a new version:
 
  1. Click on the "releases" link in the repository banner.
  2. Click on the title of the release in question
