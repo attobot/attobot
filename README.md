@@ -20,7 +20,7 @@ Releases are created via [GitHub releases](https://help.github.com/articles/crea
 AttoBot will then open a pull request against METADATA and CC you in the process. If the pull request does not appear within 30 seconds or so, please [open an issue](https://github.com/attobot/attobot/issues/new).
 
 ### Deleting a release
-If you need to modify the commit used for the release *before* the METADATA pull request has been merged, the easiest option is to delete the release and create a new version:
+If you need to make a change before the release *before* the METADATA pull request has been merged (e.g. if you need to fix your Compat settings), the easiest option is to delete the release and create a new version:
 
  1. Click on the "releases" link in the repository banner.
  2. Click on the title of the release in question
