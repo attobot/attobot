@@ -178,7 +178,7 @@ def lambda_handler(event, context):
     NEW_COMMIT_SHA = rj["sha"]
 
     # 12) Create new ref (i.e. branch)
-    NEW_BRANCH_NAME = "pr/" + SHA1
+    NEW_BRANCH_NAME = PKG_NAME + "/" + TAG_NAME
     r = requests.post(urljoin(GITHUB_API,"repos", BOT_USER, META_NAME, "git/refs"),
             auth=(BOT_USER, BOT_PASS),
             json={
