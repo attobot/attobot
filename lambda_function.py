@@ -103,6 +103,12 @@ def lambda_handler(event, context):
     # 4) get the commit hash corresponding to the tag
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "git/refs/tags", TAG_NAME))
     rj = r.json()
+
+    # if annotated tag: need to make another request
+    if rj["object"]["type"] == "tag":
+        r = requests.get(rj["object"]["url"])
+        rj = r.json()
+
     SHA1 = rj["object"]["sha"]
 
     # 5) get the REQUIRE file from the commit
