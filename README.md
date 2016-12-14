@@ -2,11 +2,11 @@
 
 <img src="https://github.com/attobot/attobot/blob/master/img/attobot.png" alt="attobot">
 
-AttoBot is a package release bot for Julia. It will creates pull requests to Julia METADATA when releases are tagged in GitHub, as an alternative to `PkgDev.tag`/`PkgDev.publish`.
+AttoBot is a package release bot for Julia. It will creates pull requests to Julia METADATA when releases are tagged in GitHub, as an alternative to the [`PkgDev.jl`](https://github.com/JuliaLang/PkgDev.jl) functions `register`, `tag` and `publish`.
 
 ## Usage
 
-To set up AttoBot on your repository, go to https://github.com/integration/attobot and click "Configure" to select the repositories you wish to add. These should be Julia repositories which are already [registered in METADATA.jl](http://docs.julialang.org/en/release-0.5/manual/packages/#tagging-and-publishing-your-package).
+To set up AttoBot on your repository, go to https://github.com/integration/attobot and click "Configure" to select the repositories you wish to add. If the package is not yet [registered in METADATA.jl](http://docs.julialang.org/en/release-0.5/manual/packages/#tagging-and-publishing-your-package), it will be automatically added when you make your first release.
 
 ### Creating a release
 Releases are created via [GitHub releases](https://help.github.com/articles/creating-releases/): this is some extra functionality built on top of git tags that trigger a webhook used by AttoBot.
