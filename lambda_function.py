@@ -69,7 +69,7 @@ def lambda_handler(event, context):
 
     REPO_NAME = repository["name"]
     REPO_FULLNAME = repository["full_name"]
-    REPO_URLS = [repository["git_url"], repository["ssh_url"], repository["clone_url"]]
+    REPO_URLS = [repository["clone_url"], repository["git_url"], repository["ssh_url"]]
     REPO_HTML_URL = repository["html_url"]
 
     if REPO_NAME.endswith(".jl"):
