@@ -12,7 +12,7 @@ from posixpath import join as urljoin
 
 import logging
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 GITHUB_API = "https://api.github.com/"
 
@@ -235,6 +235,18 @@ def lambda_handler(event, context):
                 "sha": NEW_COMMIT_SHA
             })
 
+    if r.status_code == 422:
+        EXISTING = True
+        # 9a) PR already exists, update the ref instead
+        r = requests.patch(urljoin(GITHUB_API,"repos", BOT_USER, META_NAME, "git/refs/heads", NEW_BRANCH_NAME),
+                auth=(BOT_USER, BOT_PASS),
+                json={
+                    "sha": NEW_COMMIT_SHA,
+                    "force": True
+                })
+    else:
+        EXISTING = False
+
     # 10) Get travis link
     # this sometimes misses, if the tag has not yet made it to travis
     TRAVIS_PR_LINE = ""
@@ -276,14 +288,31 @@ def lambda_handler(event, context):
             "`requires` vs v" + LAST_VERSION + ": " + req_status + "\n" + \
             "cc: @" + AUTHOR
 
-    r = requests.post(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
-            auth=(BOT_USER, BOT_PASS),
-            json={
-                "title": title,
-                "body": body,
-                "head": BOT_USER + ":" + NEW_BRANCH_NAME,
-                "base": META_BRANCH
-            })
-    rj = r.json()
+    if EXISTING:
+        r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
+                params={
+                    "head": BOT_USER + ":" + NEW_BRANCH_NAME
+                })
+        rj = r.json()[0] # assume it is the only return value
 
-    return "PR created: " + rj["url"]
+        r = requests.post(rj["comments_url"],
+                auth=(BOT_USER, BOT_PASS),
+                json={
+                    "body": body,
+                })
+        rj = r.json()
+
+        return "Comment created: " + rj["url"]
+
+    else:
+        r = requests.post(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
+                auth=(BOT_USER, BOT_PASS),
+                json={
+                    "title": title,
+                    "body": body,
+                    "head": BOT_USER + ":" + NEW_BRANCH_NAME,
+                    "base": META_BRANCH
+                })
+        rj = r.json()
+
+        return "PR created: " + rj["url"]
