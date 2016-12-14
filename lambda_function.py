@@ -235,11 +235,23 @@ def lambda_handler(event, context):
                 "sha": NEW_COMMIT_SHA
             })
 
-    # 10) Create pull request
+    # 10) Get travis link
+    TRAVIS_PR_LINE = ""
+    r = requests.get(urljoin("https://api.travis-ci.org/","repos",REPO_FULLNAME,"branches",TAG_NAME))
+    if r.status_code == requests.codes.ok:
+        rj = r.json()
+        build_id = rj["branch"]["id"]
+        if SHA1 == rj["commit"]["sha"]:
+            badge_url = urljoin("https://api.travis-ci.org/", REPO_FULLNAME,".svg?branch=",TAG_NAME)
+            build_url = urljoin("https://travis-ci.org/", REPO_FULLNAME, "builds", build_id)
+            TRAVIS_PR_LINE = "Travis: [![Travis Build Status](" + badge_url + ")](" + build_url + ")\n"
+
+    # 11) Create pull request
     if REGISTER:
         title = "Register new package " + REPO_NAME + " " + TAG_NAME
         body = "Repository: [" + REPO_NAME + "](" + REPO_HTML_URL + ")\n" +
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" +
+            TRAVIS_PR_LINE +
             "cc: @" + AUTHOR
     else:
         diff_url = urljoin(REPO_HTML_URL, "compare", LAST_SHA1 + "..." + SHA1)
@@ -253,6 +265,7 @@ def lambda_handler(event, context):
         title = "Tag " + REPO_NAME + " " + TAG_NAME
         body = "Repository: [" + REPO_NAME + "](" + REPO_HTML_URL + ")\n" +
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" +
+            TRAVIS_PR_LINE +
             "Diff: [vs v" + LAST_VERSION + "](" + diff_url + ")\n" +
             "`requires` vs v" + LAST_VERSION + ":\n" +
             "```diff\n" + requires_diff + "```\n" +
