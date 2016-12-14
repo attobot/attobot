@@ -43,7 +43,14 @@ def gh_decode(rj):
     elif enc == "utf-8":
         return cnt
 
-
+def errorissue(repo_fullname, user, message):
+    r = requests.post(urljoin(GITHUB_API, "repos", repo_fullname, "issues"),
+            auth=(BOT_USER, BOT_PASS),
+            json={
+                "title": "Error tagging new release",
+                "body": message + "\ncc: @" + user
+                })
+    raise Exception(message)
 
 # main function
 # "event" has 2 fields
@@ -75,10 +82,10 @@ def lambda_handler(event, context):
     if REPO_NAME.endswith(".jl"):
         PKG_NAME = REPO_NAME[:-3]
     else:
-        raise Exception('Invalid repository name: does not end in .jl')
+        errorissue(REPO_FULLNAME, AUTHOR, "The repository does not have a .jl suffix.")
 
     if not re.match(r"v\d+.\d+.\d+", TAG_NAME):
-        raise Exception('Invalid tag name')
+        errorissue(REPO_FULLNAME, AUTHOR, "The tag name \"" + TAG_NAME + "\" is not of the appropriate SemVer form (vX.Y.Z).")
 
     VERSION = TAG_NAME[1:]
 
@@ -95,7 +102,7 @@ def lambda_handler(event, context):
         # verify this is indeed the package with the correct name
         REPO_URL_META = gh_decode(rj).rstrip()
         if REPO_URL_META not in REPO_URLS:
-            raise Exception('Repository path does not match that in METADATA')
+            errorissue(REPO_FULLNAME, AUTHOR, "The URL of this package does not match that stored in METADATA.jl.")
 
         # 1a) get last version
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions"),
@@ -130,6 +137,9 @@ def lambda_handler(event, context):
     # 3) get the REQUIRE file from the commit
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "contents", "REQUIRE"),
                      params={"ref": SHA1})
+    if r.status_code == 404:
+        errorissue(REPO_FULLNAME, AUTHOR, "The REQUIRE file could not be found.")
+
     rj = r.json()
     REQUIRE_CONTENT = rj["content"]
     REQUIRE_ENCODING = rj["encoding"]
