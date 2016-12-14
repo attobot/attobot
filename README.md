@@ -23,6 +23,7 @@ AttoBot will then open a pull request against METADATA and CC you in the process
 If you need to make a change before the release *before* the METADATA pull request has been merged (e.g. if you need to fix your Compat settings), the easiest option is to delete the release and create a new version; Attobot will then update the existing pull request and make a comment that it has been updated. To delete a release:
 
  1. Click on the "releases" link in the repository banner.
+  <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-1.png" alt="release link" width="610">
  2. Click on the title of the release in question
   <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-delete-1.png" alt="release title" width="517">
  3. Click "Delete".
