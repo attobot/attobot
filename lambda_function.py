@@ -6,6 +6,7 @@ import botocore.vendored.requests as requests
 import json
 import re
 import os
+import difflib
 
 from posixpath import join as urljoin
 
@@ -32,6 +33,16 @@ def verify_signature(secret, signature, payload):
     computed_hash = hmac.new(str(secret), payload, hashlib.sha1)
     computed_signature = 'sha1=' + computed_hash.hexdigest()
     return hmac.compare_digest(computed_signature, str(signature))
+
+# decode github content dicts
+def gh_decode(rj):
+    enc = rj["encoding"]
+    cnt = rj["content"]
+    if enc == "base64":
+        return base64.b64decode(cnt)
+    elif enc == "utf-8":
+        return cnt
+
 
 
 # main function
@@ -71,7 +82,7 @@ def lambda_handler(event, context):
 
     VERSION = TAG_NAME[1:]
 
-    # 1) verify this is indeed the package with the correct name
+    # 1) check if package registered
     r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "url"),
                      params={"ref": META_BRANCH})
 
@@ -80,62 +91,62 @@ def lambda_handler(event, context):
 
     else:
         REGISTER = false
-
         rj = r.json()
-        if rj["encoding"] == "base64":
-            REPO_URL_META = base64.b64decode(rj["content"]).rstrip()
-        elif rj["encoding"] == "utf-8":
-            REPO_URL_META = rj["content"].rstrip()
-
+        # verify this is indeed the package with the correct name
+        REPO_URL_META = gh_decode(rj).rstrip()
         if REPO_URL_META not in REPO_URLS:
             raise Exception('Repository path does not match that in METADATA')
 
-        # 2) get last version
+        # 1a) get last version
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions"),
                          params={"ref": META_BRANCH})
         rj = r.json()
         LAST_VERSION = max([d["name"] for d in rj], key=lambda s: map(int, s.split('.')))
 
-        # 3) get last version sha1
+        # 1b) get last version sha1
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "sha1"),
                          params={"ref": META_BRANCH})
         rj = r.json()
-        if rj["encoding"] == "base64":
-            LAST_VERSION_SHA1 = base64.b64decode(rj["content"]).rstrip()
-        elif rj["encoding"] == "utf-8":
-            LAST_VERSION_SHA1 = rj["content"].rstrip()
+        LAST_SHA1 = gh_decode(rj).rstrip()
+
+        # 1c) get last requires
+        r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "requires"),
+                         params={"ref": META_BRANCH})
+        rj = r.json()
+        LAST_REQUIRE = gh_decode(rj)
 
 
-    # 4) get the commit hash corresponding to the tag
+    # 2) get the commit hash corresponding to the tag
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "git/refs/tags", TAG_NAME))
     rj = r.json()
 
-    # 4a) if annotated tag: need to make another request
+    # 2a) if annotated tag: need to make another request
     if rj["object"]["type"] == "tag":
         r = requests.get(rj["object"]["url"])
         rj = r.json()
 
     SHA1 = rj["object"]["sha"]
 
-    # 5) get the REQUIRE file from the commit
+    # 3) get the REQUIRE file from the commit
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "contents", "REQUIRE"),
                      params={"ref": SHA1})
     rj = r.json()
     REQUIRE_CONTENT = rj["content"]
     REQUIRE_ENCODING = rj["encoding"]
+    REQUIRE = gh_decode(rj)
 
-    # 6) get current METADATA head commit
+    # 4) get current METADATA head commit
     r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "git/refs/heads", META_BRANCH))
     rj = r.json()
-    LAST_COMMIT_SHA = rj["object"]["sha"]
-    LAST_COMMIT_URL = rj["object"]["url"]
+    PREV_COMMIT_SHA = rj["object"]["sha"]
+    PREV_COMMIT_URL = rj["object"]["url"]
 
-    # 7) get tree corresponding to last METADATA commit
-    r = requests.get(LAST_COMMIT_URL)
+    # 5) get tree corresponding to last METADATA commit
+    r = requests.get(PREV_COMMIT_URL)
     rj = r.json()
-    LAST_TREE_SHA = rj["tree"]["sha"]
+    PREV_TREE_SHA = rj["tree"]["sha"]
 
-    # 8) create blob for REQUIRE
+    # 6a) create blob for REQUIRE
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
             auth=(BOT_USER, BOT_PASS),
             json={
@@ -145,7 +156,7 @@ def lambda_handler(event, context):
     rj = r.json()
     REQUIRE_BLOB_SHA = rj["sha"]
 
-    # 9) create blob for SHA1
+    # 6b) create blob for SHA1
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
             auth=(BOT_USER, BOT_PASS),
             json={
@@ -155,7 +166,7 @@ def lambda_handler(event, context):
     rj = r.json()
     SHA1_BLOB_SHA = rj["sha"]
 
-    # 9.5) create blob for url if necessary
+    # 6c) create blob for url if necessary
     if REGISTER:
         r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
                 auth=(BOT_USER, BOT_PASS),
@@ -167,9 +178,9 @@ def lambda_handler(event, context):
         URL_BLOB_SHA = rj["sha"]
 
 
-    # 10) create new tree
+    # 7) create new tree
     tree_data = {
-        "base_tree": LAST_TREE_SHA,
+        "base_tree": PREV_TREE_SHA,
         "tree": [
             {
                 "path": urljoin(PKG_NAME,"versions",VERSION,"requires"),
@@ -200,7 +211,7 @@ def lambda_handler(event, context):
     rj = r.json()
     NEW_TREE_SHA = rj["sha"]
 
-    # 11) create commit
+    # 8) create commit
     if REGISTER:
         msg = "Register " + REPO_NAME + " " + TAG_NAME + " [" + HTML_URL + "]"
     else:
@@ -209,13 +220,13 @@ def lambda_handler(event, context):
             auth=(BOT_USER, BOT_PASS),
             json={
                 "message": msg,
-                "parents": [ LAST_COMMIT_SHA ],
+                "parents": [ PREV_COMMIT_SHA ],
                 "tree": NEW_TREE_SHA
             })
     rj = r.json()
     NEW_COMMIT_SHA = rj["sha"]
 
-    # 12) Create new ref (i.e. branch)
+    # 9) Create new ref (i.e. branch)
     NEW_BRANCH_NAME = PKG_NAME + "/" + TAG_NAME
     r = requests.post(urljoin(GITHUB_API,"repos", BOT_USER, META_NAME, "git/refs"),
             auth=(BOT_USER, BOT_PASS),
@@ -224,16 +235,27 @@ def lambda_handler(event, context):
                 "sha": NEW_COMMIT_SHA
             })
 
-    # 13) Create pull request
+    # 10) Create pull request
     if REGISTER:
         title = "Register new package " + REPO_NAME + " " + TAG_NAME
-        body = "Release: " + HTML_URL + "\n" +
+        body = "Repository: [" + REPO_NAME + "](" + REPO_HTML_URL + ")\n" +
+            "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" +
             "cc: @" + AUTHOR
     else:
-        diff_url = urljoin(REPO_HTML_URL, "compare", LAST_VERSION_SHA1 + "..." + SHA1)
+        diff_url = urljoin(REPO_HTML_URL, "compare", LAST_SHA1 + "..." + SHA1)
+
+        requires_diff = "".join(difflib.unified_diff(
+            LAST_REQUIRE.splitlines(True),
+            REQUIRE.splitlines(True),
+            LAST_VERSION + "/requires",
+            VERSION + "/requires"))
+
         title = "Tag " + REPO_NAME + " " + TAG_NAME
-        body = "Release: " + HTML_URL + "\n" +
+        body = "Repository: [" + REPO_NAME + "](" + REPO_HTML_URL + ")\n" +
+            "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" +
             "Diff: [vs v" + LAST_VERSION + "](" + diff_url + ")\n" +
+            "`requires` vs v" + LAST_VERSION + ":\n" +
+            "```diff\n" + requires_diff + "```\n" +
             "cc: @" + AUTHOR
 
     r = requests.post(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
