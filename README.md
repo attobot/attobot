@@ -17,10 +17,10 @@ Releases are created via [GitHub releases](https://help.github.com/articles/crea
   <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-2.png" alt="draft new release" width="488">
  3. Enter a tag label in the appropriate [semver form](http://semver.org/) (i.e. `vX.Y.Z` where X,Y,Z are numbers): GitHub will create the tag if it doesn't already exist. Include any other details and click "Publish release".
  
-AttoBot will then open a pull request against METADATA and CC you in the process. In certain cases Attobot may open an issue on the repository if the release is not correct (e.g. if the tag is not in the correct form). If the pull request does not appear within 30 seconds or so, please [open an issue](https://github.com/attobot/attobot/issues/new).
+AttoBot will then open a pull request against METADATA and CC you in the process. In certain cases AttoBot may open an issue on the repository if the release is not correct (e.g. if the tag is not in the correct form). If the pull request does not appear within 30 seconds or so, please [open an issue](https://github.com/attobot/attobot/issues/new).
 
 ### Updating/deleting a release
-If you need to make a change before the release *before* the METADATA pull request has been merged (e.g. if you need to fix your Compat settings), the easiest option is to delete the release and create a new version; Attobot will then update the existing pull request and make a comment that it has been updated. To delete a release:
+If you need to make a change before the release *before* the METADATA pull request has been merged (e.g. if you need to fix your Compat settings), the easiest option is to delete the release and create a new version; AttoBot will then update the existing pull request and make a comment that it has been updated. To delete a release:
 
  1. Click on the "releases" link in the repository banner.
   <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-1.png" alt="release link" width="610">
@@ -31,9 +31,9 @@ If you need to make a change before the release *before* the METADATA pull reque
  
 ## Privacy statement
 
-Attobot receives the content of certain GitHub hooks, namely the `integration_installation` event (which doesn't appear to be documented, but in any case is ignored by AttoBot), and the [`release`](https://developer.github.com/v3/activity/events/types/#releaseevent) event. These contain certain publicly available details about the repository and the user who initiated the event. Attobot will also make several subsequent queries via the public GitHub api to the repository in question. The contents of these may be retained in server logs.
+AttoBot receives the content of certain GitHub hooks, namely the `integration_installation` event (which doesn't appear to be documented, but in any case is ignored by AttoBot), and the [`release`](https://developer.github.com/v3/activity/events/types/#releaseevent) event. These contain certain publicly available details about the repository and the user who initiated the event. AttoBot will also make several subsequent queries via the public GitHub api to the repository in question. The contents of these may be retained in server logs.
 
-Attobot should not be enabled on private repositories: not only are these not supported by METADATA (thus any such pull requests will be rejected), but you may inadvertently leak private information.
+AttoBot should not be enabled on private repositories: not only are these not supported by METADATA (thus any such pull requests will be rejected), but you may inadvertently leak private information.
 
 ## Credits
 
