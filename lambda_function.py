@@ -272,7 +272,7 @@ def lambda_handler(event, context):
     # 11) Create pull request
     if REGISTER:
         title = "Register new package " + REPO_NAME + " " + TAG_NAME
-        body = "Repository: [" + REPO_NAME + "](" + REPO_HTML_URL + ")\n" + \
+        body = "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" + \
             TRAVIS_PR_LINE + \
             "cc: @" + AUTHOR
@@ -291,7 +291,7 @@ def lambda_handler(event, context):
             req_status = "\n```diff\n" + req_diff + "```"
 
         title = "Tag " + REPO_NAME + " " + TAG_NAME
-        body = "Repository: [" + REPO_NAME + "](" + REPO_HTML_URL + ")\n" + \
+        body = "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" + \
             TRAVIS_PR_LINE + \
             "Diff: [vs v" + LAST_VERSION + "](" + diff_url + ")\n" + \
