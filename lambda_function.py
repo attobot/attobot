@@ -84,7 +84,7 @@ def lambda_handler(event, context):
     else:
         errorissue(REPO_FULLNAME, AUTHOR, "The repository does not have a .jl suffix.")
 
-    if not re.match(r"v\d+.\d+.\d+", TAG_NAME):
+    if not re.match(r"v\d+\.\d+\.\d+", TAG_NAME):
         errorissue(REPO_FULLNAME, AUTHOR, "The tag name \"" + TAG_NAME + "\" is not of the appropriate SemVer form (vX.Y.Z).")
 
     VERSION = TAG_NAME[1:]
