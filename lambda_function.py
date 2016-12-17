@@ -301,7 +301,8 @@ def lambda_handler(event, context):
     if EXISTING:
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
                 params={
-                    "head": BOT_USER + ":" + NEW_BRANCH_NAME
+                    "head": BOT_USER + ":" + NEW_BRANCH_NAME,
+                    "state": "all"
                 })
         rj = r.json()[0] # assume it is the only return value
 
