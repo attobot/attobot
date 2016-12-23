@@ -288,6 +288,9 @@ def lambda_handler(event, context):
         if req_diff == "":
             req_status = "no changes"
         else:
+            # Ensure closing ``` is on its own line
+            if not req_diff.endswith("\n"):
+                req_diff += "\n"
             req_status = "\n```diff\n" + req_diff + "```"
 
         title = "Tag " + REPO_NAME + " " + TAG_NAME
