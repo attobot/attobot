@@ -20,7 +20,7 @@ Releases are created via [GitHub releases](https://help.github.com/articles/crea
 AttoBot will then open a pull request against METADATA and CC you in the process. In certain cases AttoBot may open an issue on the repository if the release is not correct (e.g. if the tag is not in the correct form). If the pull request does not appear within 30 seconds or so, please [open an issue](https://github.com/attobot/attobot/issues/new).
 
 ### Updating/deleting a release
-If you need to make a change before the release *before* the METADATA pull request has been merged (e.g. if you need to fix your Compat settings), the easiest option is to delete the release and create a new release with the same version number; AttoBot will then update the existing pull request and make a comment that it has been updated. To delete a release:
+If you need to make a change before the release *before* the METADATA pull request has been merged (e.g. if you need to fix your Compat settings), the easiest option is to delete the release and create a new release with the same version number; AttoBot will then update the existing pull request and make a comment that it has been updated. To delete a release and its tag:
 
  1. Click on the "releases" link in the repository banner.
   <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-1.png" alt="release link" width="610">
@@ -28,6 +28,11 @@ If you need to make a change before the release *before* the METADATA pull reque
   <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-delete-1.png" alt="release title" width="517">
  3. Click "Delete".
   <br/><img src="https://github.com/attobot/attobot/blob/master/img/release-delete-2.png" alt="release delete" width="408">
+ 4. The tag still exists; click on the tag title
+  <br/><img src="https://github.com/attobot/attobot/blob/master/img/tag-delete-1.png" alt="tag title" width="489">
+ 5. Click "Delete"
+  <br/><img src="https://github.com/attobot/attobot/blob/master/img/tag-delete-2.png" alt="release title" width="368">
+
  
 ## Privacy statement
 
