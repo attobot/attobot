@@ -117,10 +117,14 @@ def lambda_handler(event, context):
         LAST_SHA1 = gh_decode(rj).rstrip()
 
         # 1c) get last requires
+        # this may not exist in some very old cases
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "requires"),
                          params={"ref": META_BRANCH})
-        rj = r.json()
-        LAST_REQUIRE = gh_decode(rj)
+        if r.status_code == 200:
+            rj = r.json()
+            LAST_REQUIRE = gh_decode(rj)
+        else:
+            LAST_REQUIRE = ""
 
 
     # 2) get the commit hash corresponding to the tag
