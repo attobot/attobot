@@ -1,8 +1,8 @@
 
-publish-lambda: lambda_function.py
-	-rm attobot.zip
-	zip attobot.zip $^
-	aws lambda update-function-code --function-name AttoBot --zip-file "fileb://attobot.zip"
-	-rm attobot.zip
+publish-%: %/lambda_function.py
+	-rm tmp.zip
+	zip -j tmp.zip $^
+	aws lambda update-function-code --function-name $* --zip-file "fileb://tmp.zip"
+	-rm tmp.zip
 
-.PHONY: publish-lambda
+.PHONY: publish-%

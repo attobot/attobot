@@ -52,6 +52,23 @@ def errorissue(repo_fullname, user, message):
                 })
     raise Exception(message)
 
+
+def semverkey(s):
+    m = re.match(r"(\d+)\.(\d+)\.(\d+)(([+-])[0-9A-Za-z-]+)?", s)
+    if not m:
+        raise Exception('Invalid semver key %s' % s)
+    x = int(m.group(1))
+    y = int(m.group(2))
+    z = int(m.group(3))
+    if m.group(4):
+        if m.group(5) == "+":
+            q = 1
+        else:
+            q = -1
+    else:
+        q = 0
+    return x,y,z,q
+
 # main function
 # "event" has 2 fields
 #   - body64: base64 encoding of the webhook body
@@ -108,7 +125,7 @@ def lambda_handler(event, context):
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions"),
                          params={"ref": META_BRANCH})
         rj = r.json()
-        LAST_VERSION = max([d["name"] for d in rj], key=lambda s: map(int, s.split('.')))
+        LAST_VERSION = max([d["name"] for d in rj], key=semverkey)
 
         # 1b) get last version sha1
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "sha1"),

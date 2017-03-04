@@ -7,6 +7,7 @@ import json
 import re
 import os
 import difflib
+import time
 
 from posixpath import join as urljoin
 
@@ -70,8 +71,19 @@ def lambda_handler(event, context):
     if body["pull_request"]["user"]["login"] != "attobot":
         return 'Not an attobot pull request'
 
+    PR_URL = body["pull_request"]["url"]
+    
     # branch name
     REF = body["pull_request"]["head"]["ref"]
+
+    # we pause for 20 seconds to see if the branch is reopened, e.g. for retriggering Travis
+    time.sleep(20)
+
+    # check if branch is still open
+    r = requests.get(PR_URL)
+    rj = r.json()
+    if rj["state"] != "closed":
+        return "Pull request has been reopened"
 
     # delete attobot branch
     r = requests.delete(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/refs/heads", REF),
