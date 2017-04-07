@@ -125,7 +125,11 @@ def lambda_handler(event, context):
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions"),
                          params={"ref": META_BRANCH})
         rj = r.json()
-        LAST_VERSION = max([d["name"] for d in rj], key=semverkey)
+        ALL_VERSIONS = [d["name"] for d in rj]
+        PREV_VERSIONS = filter(lambda v : semverkey(v) < semverkey(VERSION), ALL_VERSIONS)
+        if not PREV_VERSIONS:
+            errorissue(REPO_FULLNAME, AUTHOR, "Cannot tag a new version \"" + TAG_NAME + "\" preceding all existing versions.")
+        LAST_VERSION = max(PREV_VERSIONS, key=semverkey)
 
         # 1b) get last version sha1
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "sha1"),
