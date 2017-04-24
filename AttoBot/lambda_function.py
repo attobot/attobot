@@ -44,8 +44,8 @@ def gh_decode(rj):
         raise Exception("Unknown encoding %s" % enc)
 
 def gh_encode(str):
-    {"content":  base64.b64encode(str),
-     "encoding": "base64"}
+    return {"content":  base64.b64encode(str),
+            "encoding": "base64"}
 
 
 def errorissue(repo_fullname, user, message):
