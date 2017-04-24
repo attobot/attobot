@@ -113,6 +113,7 @@ def lambda_handler(event, context):
 
     # 1) check if package registered
     r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "url"),
+                     auth=(BOT_USER, BOT_PASS),
                      params={"ref": META_BRANCH})
 
     if r.status_code == 404:
@@ -128,6 +129,7 @@ def lambda_handler(event, context):
 
         # 1a) get last version
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions"),
+                         auth=(BOT_USER, BOT_PASS),
                          params={"ref": META_BRANCH})
         rj = r.json()
         ALL_VERSIONS = [d["name"] for d in rj]
@@ -138,6 +140,7 @@ def lambda_handler(event, context):
 
         # 1b) get last version sha1
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "sha1"),
+                         auth=(BOT_USER, BOT_PASS),
                          params={"ref": META_BRANCH})
         rj = r.json()
         LAST_SHA1 = gh_decode(rj).rstrip()
@@ -145,6 +148,7 @@ def lambda_handler(event, context):
         # 1c) get last requires
         # this may not exist in some very old cases
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "contents", PKG_NAME, "versions", LAST_VERSION, "requires"),
+                         auth=(BOT_USER, BOT_PASS),
                          params={"ref": META_BRANCH})
         if r.status_code == 200:
             rj = r.json()
@@ -154,18 +158,21 @@ def lambda_handler(event, context):
 
 
     # 2) get the commit hash corresponding to the tag
-    r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "git/refs/tags", TAG_NAME))
+    r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "git/refs/tags", TAG_NAME),
+                     auth=(BOT_USER, BOT_PASS))
     rj = r.json()
 
     # 2a) if annotated tag: need to make another request
     if rj["object"]["type"] == "tag":
-        r = requests.get(rj["object"]["url"])
+        r = requests.get(rj["object"]["url"],
+                    auth=(BOT_USER, BOT_PASS))
         rj = r.json()
 
     SHA1 = rj["object"]["sha"]
 
     # 3) get the REQUIRE file from the commit
     r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "contents", "REQUIRE"),
+                     auth=(BOT_USER, BOT_PASS),
                      params={"ref": SHA1})
     if r.status_code == 404:
         errorissue(REPO_FULLNAME, AUTHOR, "The REQUIRE file could not be found.")
@@ -174,13 +181,15 @@ def lambda_handler(event, context):
     REQUIRE = gh_decode(rj).replace('\r\n', '\n') # normalize line endings
 
     # 4) get current METADATA head commit
-    r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "git/refs/heads", META_BRANCH))
+    r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "git/refs/heads", META_BRANCH),
+                auth=(BOT_USER, BOT_PASS))
     rj = r.json()
     PREV_COMMIT_SHA = rj["object"]["sha"]
     PREV_COMMIT_URL = rj["object"]["url"]
 
     # 5) get tree corresponding to last METADATA commit
-    r = requests.get(PREV_COMMIT_URL)
+    r = requests.get(PREV_COMMIT_URL,
+                auth=(BOT_USER, BOT_PASS))
     rj = r.json()
     PREV_TREE_SHA = rj["tree"]["sha"]
 
@@ -279,7 +288,8 @@ def lambda_handler(event, context):
     # 10) Get travis link
     # this sometimes misses, if the tag has not yet made it to travis
     TRAVIS_PR_LINE = ""
-    r = requests.get(urljoin("https://api.travis-ci.org/","repos",REPO_FULLNAME,"branches",TAG_NAME))
+    r = requests.get(urljoin("https://api.travis-ci.org/","repos",REPO_FULLNAME,"branches",TAG_NAME),
+                auth=(BOT_USER, BOT_PASS))
     if r.status_code == requests.codes.ok:
         rj = r.json()
         build_id = str(rj["branch"]["id"])
