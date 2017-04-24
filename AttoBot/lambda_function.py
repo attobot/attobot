@@ -36,12 +36,17 @@ def verify_signature(secret, signature, payload):
 
 # decode github content dicts
 def gh_decode(rj):
-    enc = rj["encoding"]
-    cnt = rj["content"]
-    if enc == "base64":
-        return base64.b64decode(cnt)
-    elif enc == "utf-8":
-        return cnt
+    if rj["encoding"] == "base64":
+        return base64.b64decode(rj["content"])
+    elif rj["encoding"] == "utf-8":
+        return rj["content"]
+    else:
+        raise Exception("Unknown encoding %s" % enc)
+
+def gh_encode(str):
+    {"content":  base64.b64encode(str),
+     "encoding": "base64"}
+
 
 def errorissue(repo_fullname, user, message):
     r = requests.post(urljoin(GITHUB_API, "repos", repo_fullname, "issues"),
@@ -166,9 +171,7 @@ def lambda_handler(event, context):
         errorissue(REPO_FULLNAME, AUTHOR, "The REQUIRE file could not be found.")
 
     rj = r.json()
-    REQUIRE_CONTENT = rj["content"]
-    REQUIRE_ENCODING = rj["encoding"]
-    REQUIRE = gh_decode(rj)
+    REQUIRE = gh_decode(rj).replace('\r\n', '\n') # normalize line endings
 
     # 4) get current METADATA head commit
     r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "git/refs/heads", META_BRANCH))
@@ -184,20 +187,14 @@ def lambda_handler(event, context):
     # 6a) create blob for REQUIRE
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
             auth=(BOT_USER, BOT_PASS),
-            json={
-                "content": REQUIRE_CONTENT,
-                "encoding": REQUIRE_ENCODING
-                })
+            json=gh_encode(REQUIRE))
     rj = r.json()
     REQUIRE_BLOB_SHA = rj["sha"]
 
     # 6b) create blob for SHA1
     r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
             auth=(BOT_USER, BOT_PASS),
-            json={
-                "content": SHA1 + "\n",
-                "encoding": "utf-8"
-                })
+            json=gh_encode(SHA1+"\n"))
     rj = r.json()
     SHA1_BLOB_SHA = rj["sha"]
 
@@ -205,10 +202,7 @@ def lambda_handler(event, context):
     if REGISTER:
         r = requests.post(urljoin(GITHUB_API, "repos", BOT_USER, META_NAME, "git/blobs"),
                 auth=(BOT_USER, BOT_PASS),
-                json={
-                    "content": REPO_URLS[0] + "\n",
-                    "encoding": "utf-8"
-                    })
+                json=gh_encode(REPO_URLS[0]+"\n"))
         rj = r.json()
         URL_BLOB_SHA = rj["sha"]
 
