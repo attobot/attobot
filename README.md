@@ -38,6 +38,8 @@ If you need to make a change before the release *before* the METADATA pull reque
 
 AttoBot receives the content of certain GitHub hooks, namely the `integration_installation` event (which doesn't appear to be documented, but in any case is ignored by AttoBot), and the [`release`](https://developer.github.com/v3/activity/events/types/#releaseevent) event. These contain certain publicly available details about the repository and the user who initiated the event. AttoBot will also make several subsequent queries via the public GitHub api to the repository in question. The contents of these may be retained in server logs.
 
+The user who triggers the release will be marked as the commit author, and if their email is publicly available via GitHub, then it will appear in the commit log. If you don't wish for this to happen, then you should [make your email address private](https://help.github.com/articles/keeping-your-email-address-private/).
+
 AttoBot should not be enabled on private repositories: not only are these not supported by METADATA (thus any such pull requests will be rejected), but you may inadvertently leak private information.
 
 ## Credits
