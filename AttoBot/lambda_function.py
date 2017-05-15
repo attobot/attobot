@@ -288,8 +288,7 @@ def lambda_handler(event, context):
     # 10) Get travis link
     # this sometimes misses, if the tag has not yet made it to travis
     TRAVIS_PR_LINE = ""
-    r = requests.get(urljoin("https://api.travis-ci.org/","repos",REPO_FULLNAME,"branches",TAG_NAME),
-                auth=(BOT_USER, BOT_PASS))
+    r = requests.get(urljoin("https://api.travis-ci.org/","repos",REPO_FULLNAME,"branches",TAG_NAME))
     if r.status_code == requests.codes.ok:
         rj = r.json()
         build_id = str(rj["branch"]["id"])
