@@ -255,6 +255,19 @@ def lambda_handler(event, context):
     rj = r.json()
     NEW_TREE_SHA = rj["sha"]
 
+    # 7.5) get user info for commit
+    r = requests.get(urljoin(GITHUB_API,"users",AUTHOR),
+                auth=(BOT_USER, BOT_PASS))
+    rj = r.json()
+    AUTHOR_NAME = rj["name"]
+    if AUTHOR_NAME is None:
+        AUTHOR_NAME = AUTHOR
+
+    AUTHOR_EMAIL = rj["email"]
+    if AUTHOR_EMAIL is None:
+        AUTHOR_EMAIL = AUTHOR + "@users.noreply.github.com"
+
+
     # 8) create commit
     if REGISTER:
         msg = "Register " + REPO_NAME + " " + TAG_NAME + " [" + HTML_URL + "]"
@@ -265,7 +278,15 @@ def lambda_handler(event, context):
             json={
                 "message": msg,
                 "parents": [ PREV_COMMIT_SHA ],
-                "tree": NEW_TREE_SHA
+                "tree": NEW_TREE_SHA,
+                "author": {
+                    "name": AUTHOR_NAME,
+                    "email": AUTHOR_EMAIL
+                },
+                "committer": {
+                    "name": "AttoBot",
+                    "email": "AttoBot@users.noreply.github.com"
+                }
             })
     rj = r.json()
     NEW_COMMIT_SHA = rj["sha"]
