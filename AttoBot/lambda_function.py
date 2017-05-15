@@ -25,6 +25,12 @@ META_BRANCH = "metadata-v2"
 
 SECRET = os.environ["SECRET"]
 
+TAG_REQ = "\n".join((
+    "Please make sure that:",
+    "- [ ] CI passes for supported Julia versions (if applicable).",
+    "- [ ] Version bounds are up to date."
+))
+
 # seems like the best option is to base64 encode the body?
 # https://github.com/pristineio/lambda-webhook
 # https://forums.aws.amazon.com/thread.jspa?messageID=713853
@@ -303,7 +309,9 @@ def lambda_handler(event, context):
         body = "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" + \
             TRAVIS_PR_LINE + \
-            "cc: @" + AUTHOR
+            "cc: @" + AUTHOR + "\n" + \
+            "\n" + TAG_REQ + "\n" + \
+            "\n@" + AUTHOR + " This PR will remain open for 24 hours for feedback (which is optional). If you get feedback, please let us know if you are making changes, and we'll merge once you're done."
     else:
         diff_url = urljoin(REPO_HTML_URL, "compare", LAST_SHA1 + "..." + SHA1)
 
@@ -327,7 +335,8 @@ def lambda_handler(event, context):
             TRAVIS_PR_LINE + \
             "Diff: [vs v" + LAST_VERSION + "](" + diff_url + ")\n" + \
             "`requires` vs v" + LAST_VERSION + ": " + req_status + "\n" + \
-            "cc: @" + AUTHOR
+            "cc: @" + AUTHOR + "\n" + \
+            "\n" + TAG_REQ
 
     if EXISTING:
         r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "pulls"),
