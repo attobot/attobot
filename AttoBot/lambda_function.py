@@ -27,8 +27,8 @@ SECRET = os.environ["SECRET"]
 
 TAG_REQ = "\n".join((
     "Please make sure that:",
-    "- [ ] CI passes for supported Julia versions (if applicable).",
-    "- [ ] Version bounds are up to date."
+    "- CI passes for supported Julia versions (if applicable).",
+    "- Version bounds are up to date."
 ))
 
 # seems like the best option is to base64 encode the body?
