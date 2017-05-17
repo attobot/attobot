@@ -265,7 +265,16 @@ def lambda_handler(event, context):
 
     AUTHOR_EMAIL = rj["email"]
     if AUTHOR_EMAIL is None:
-        AUTHOR_EMAIL = AUTHOR + "@users.noreply.github.com"
+        # get the email from the last commit by the author
+        r = requests.get(urljoin(GITHUB_API, "repos", REPO_FULLNAME, "commits"),
+                auth=(BOT_USER, BOT_PASS),
+                params={"author": AUTHOR})
+        rj = r.json()
+        if rj:
+            AUTHOR_EMAIL = rj[0]["commit"]["author"]["email"]
+        else:
+            # otherwise use fallback (may or may not link to the author)
+            AUTHOR_EMAIL = AUTHOR + "@users.noreply.github.com"
 
 
     # 8) create commit
