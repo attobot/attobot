@@ -12,7 +12,7 @@ from posixpath import join as urljoin
 
 import logging
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 GITHUB_API = "https://api.github.com/"
 
