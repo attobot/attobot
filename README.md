@@ -6,7 +6,9 @@ AttoBot is a package release bot for Julia. It creates pull requests to Julia ME
 
 ## Usage
 
-To set up AttoBot on your repository, go to https://github.com/integration/attobot and click "Configure" to select the repositories you wish to add. If the package is not yet [registered in METADATA.jl](http://docs.julialang.org/en/release-0.5/manual/packages/#tagging-and-publishing-your-package), it will be automatically added when you make your first release.
+To set up AttoBot on your repository, go to https://github.com/integration/attobot and click "Configure" to select the repositories you wish to add. It will only operate on packages with the standard ".jl" suffix (all other packages will be ignored).
+
+If the package is not yet [registered in METADATA.jl](http://docs.julialang.org/en/stable/manual/packages/#tagging-and-publishing-your-package), it will be automatically added when you make your first release.
 
 ### Creating a release
 Releases are created via [GitHub releases](https://help.github.com/articles/creating-releases/): this is some extra functionality built on top of git tags that trigger a webhook used by AttoBot.
