@@ -341,7 +341,7 @@ def lambda_handler(event, context):
             TRAVIS_PR_LINE + \
             "cc: @" + AUTHOR + "\n" + \
             "\n" + TAG_REQ + "\n" + \
-            "\n@" + AUTHOR + " This PR will remain open for 24 hours for feedback (which is optional). If you get feedback, please let us know if you are making changes, and we'll merge once you're done."
+            "\n@" + AUTHOR + " This PR will remain open for three days for feedback (which is optional). If you get feedback, please let us know if you are making changes, and we'll merge once you're done."
     else:
         diff_url = urljoin(REPO_HTML_URL, "compare", LAST_SHA1 + "..." + SHA1)
 
