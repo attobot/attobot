@@ -1,3 +1,5 @@
+publish-AttoBot:
+publish-AttoBotDeleter:
 
 publish-%: %/lambda_function.py
 	-rm tmp.zip
