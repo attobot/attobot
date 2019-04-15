@@ -85,6 +85,8 @@ def semverkey(s):
 #   - body64: base64 encoding of the webhook body
 #   - signature: github signature
 def lambda_handler(event, context):
+    raise Exception('Temporarily disabled')
+
     body_str = base64.b64decode(event["body64"])
     logger.info(body_str)
     if not verify_signature(SECRET, event["signature"], body_str):

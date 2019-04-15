@@ -1,5 +1,8 @@
 # AttoBot
 
+# NOTE: AttoBot is currently disabled: see [this Discourse thread](https://discourse.julialang.org/t/switching-package-registration-systems-soon/22677/127?u=simonbyrne)
+
+
 <img src="https://github.com/attobot/attobot/blob/master/img/attobot.png" alt="attobot">
 
 AttoBot is a package release bot for Julia. It creates pull requests to Julia METADATA when releases are tagged in GitHub, as an alternative to the [`PkgDev.jl`](https://github.com/JuliaLang/PkgDev.jl) functions `register`, `tag` and `publish`.
