@@ -188,6 +188,14 @@ def lambda_handler(event, context):
     rj = r.json()
     REQUIRE = gh_decode(rj).replace('\r\n', '\n') # normalize line endings
 
+    # 3a) quit if required julia version > 0.6
+    m = re.search('julia (\d+)\.(\d+).*', REQUIRE)
+    if not m:
+        raise Exception('cannot determine required Julia version')
+
+    if (int(m.group(1)), int(m.group(2))) > (0,6):
+        return "Required Julia version is > 0.6"
+
     # 4) get current METADATA head commit
     r = requests.get(urljoin(GITHUB_API, "repos", META_ORG, META_NAME, "git/refs/heads", META_BRANCH),
                 auth=(BOT_USER, BOT_PASS))
@@ -338,7 +346,8 @@ def lambda_handler(event, context):
     # 11) Create pull request
     if REGISTER:
         title = "Register new package " + REPO_NAME + " " + TAG_NAME
-        body = "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
+        body = "NOTE: this package is only being tagged for Julia 0.6: you should use [Registrator.jl](https://github.com/JuliaComputing/Registrator.jl) to tag the package for later versions.\n" + \
+            "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" + \
             TRAVIS_PR_LINE + \
             "cc: @" + AUTHOR + "\n" + \
@@ -362,7 +371,8 @@ def lambda_handler(event, context):
             req_status = "\n```diff\n" + req_diff + "```"
 
         title = "Tag " + REPO_NAME + " " + TAG_NAME
-        body = "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
+        body = "NOTE: this package is only being tagged for Julia 0.6: you should use [Registrator.jl](https://github.com/JuliaComputing/Registrator.jl) to tag the package for later versions.\n" + \
+            "Repository: [" + REPO_FULLNAME + "](" + REPO_HTML_URL + ")\n" + \
             "Release: [" + TAG_NAME + "](" + HTML_URL + ")\n" + \
             TRAVIS_PR_LINE + \
             "Diff: [vs v" + LAST_VERSION + "](" + diff_url + ")\n" + \
