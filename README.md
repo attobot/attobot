@@ -1,7 +1,6 @@
 # AttoBot
 
-# NOTE: AttoBot is currently disabled: see [this Discourse thread](https://discourse.julialang.org/t/switching-package-registration-systems-soon/22677/127?u=simonbyrne)
-
+# NOTE: AttoBot will now only tag packages for Julia 0.6. For later versions, use [Registrator.jl](https://github.com/JuliaComputing/Registrator.jl).
 
 <img src="https://github.com/attobot/attobot/blob/master/img/attobot.png" alt="attobot">
 
