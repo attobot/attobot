@@ -181,7 +181,7 @@ def lambda_handler(event, context):
                      auth=(BOT_USER, BOT_PASS),
                      params={"ref": SHA1})
     if r.status_code == 404:
-        errorissue(REPO_FULLNAME, AUTHOR, "The REQUIRE file could not be found.")
+        return "No REQUIRE file"
 
     rj = r.json()
     REQUIRE = gh_decode(rj).replace('\r\n', '\n') # normalize line endings
